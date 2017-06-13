@@ -65,4 +65,4 @@ class Path:
 	def parent(self, n=1):
 		r=self.p
 		for i in range(n): r=os.path.split(r)[0]
-		return r
+		return Path(r)
