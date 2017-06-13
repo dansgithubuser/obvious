@@ -19,6 +19,13 @@ def ensure_repo(path, name):
 import os
 
 class Path:
+	@staticmethod
+	def canonicalize(path):
+		start=os.getcwd()
+		home=os.path.split(os.path.realpath(path))
+		os.chdir(home)
+		return (Path(start), Path(home))
+
 	def __init__(self, s=None, p=None, g=None, r=None):
 		if s: self.p=os.path.join(*[i if i else '/' for i in s.split('/')])
 		elif p: self.p=p
