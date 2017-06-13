@@ -5,7 +5,7 @@ try: input=raw_input
 except: pass
 
 #=====peer repo management=====#
-def ensure_repo(path, name):
+def ensure_repo(path, name, url):
 	import os, subprocess
 	if not os.path.exists(os.path.join(path, name)):
 		start=os.getcwd()
