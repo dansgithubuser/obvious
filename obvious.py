@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #=====Python 2/3 compatibility=====#
 try: input=raw_input
 except: pass
