@@ -6,18 +6,24 @@ but it's not necessarily obvious to make into convenient C++...
 */
 
 #include <algorithm>
+#include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
+//=====debug stuff=====//
 #define OBVIOUS_LOUD(X)\
 	std::cout<<"/===="<<#X<<"====\\\n";\
 	std::cout<<X<<"\n";\
 	std::cout<<"\\===="<<#X<<"====/\n";
 
+//=====typical operations=====//
+//-----typical container operations-----//
 template<typename T, typename U> unsigned index(const T& value, const U& container){
 	return std::find(container.begin(), container.end(), value)-container.begin();
 }
@@ -30,12 +36,16 @@ template<typename T, typename U> void erase(const T& value, U& container){
 	container.erase(std::find(container.begin(), container.end(), value));
 }
 
+//-----typical map operations-----//
 template<typename T, typename U> std::vector<const T&> keys(const std::map<T, U>& map){
 	std::vector<const T&> result;
 	for(const auto& i: map) result.push_back(i.first);
 	return result;
 }
 
+#define MAP_GET(M, I, D) (M.count(I)?M.at(I):D)
+
+//-----typical string operations-----//
 static void replace(std::string& s, const std::string& a, const std::string& b){
 	size_t i=0;
 	while(true){
@@ -46,6 +56,8 @@ static void replace(std::string& s, const std::string& a, const std::string& b){
 	}
 }
 
+//=====printing=====//
+//-----container printing-----//
 template<typename T> std::ostream& streamContainer(std::ostream& o, const T& t, std::string prefix){
 	//figure out if big or not
 	bool big=false;
@@ -103,6 +115,8 @@ template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const
 	return o;
 }
 
+//=====operator overloads=====//
+//-----operator+= overloads-----//
 #define OBVIOUS_PLUS_EQUALS_BASE(CONTAINER1, CONTAINER2, F)\
 	template<typename T> void operator+=(CONTAINER1<T>& r, const CONTAINER2<T>& a){\
 		for(auto& i: a) F;\
@@ -121,12 +135,30 @@ template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const
 OBVIOUS_PLUS_EQUALS(std::set)
 OBVIOUS_PLUS_EQUALS(std::vector)
 
+void operator+=(std::vector<uint8_t>& a, const std::string& b){
+	a.insert(a.end(), b.data(), b.data()+b.size());
+}
+
+//-----operator+ overloads-----//
+template<typename T> std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b){
+	std::vector<T> r=a;
+	r.insert(a.end(), b.begin(), b.end());
+	return r;
+}
+
+//=====min and max=====//
 #define OBVIOUS_MIN(X, Y) (X<Y?X:Y)
 #define OBVIOUS_MAX(X, Y) (X>Y?X:Y)
 
 #define OBVIOUS_MINI(X, Y) X=OBVIOUS_MIN(X, Y)
 #define OBVIOUS_MAXI(X, Y) X=OBVIOUS_MAX(X, Y)
 
+//=====expressions=====//
+#define OBVIOUS_IF(PREDICATE, ACTION) (PREDICATE?((ACTION), 0):0)
+
+bool toss(const char* message){ throw std::runtime_error(message); return false; }
+
+//-----list comprehensions-----//
 #define OBVIOUS_TRANSFORM(CONTAINER, F, INITIAL)[&](){\
 	auto r=INITIAL;\
 	for(auto i=CONTAINER.begin(); i!=CONTAINER.end(); ++i) F;\
@@ -143,6 +175,8 @@ OBVIOUS_PLUS_EQUALS(std::vector)
 	return r;\
 }()
 
+//=====types=====//
+//-----Cartesian coordinates-----//
 struct Pair{
 	Pair(int x, int y): x(x), y(y) {}
 	bool operator<(const Pair& other) const{
@@ -158,6 +192,63 @@ static std::ostream& operator<<(std::ostream& o, const Pair& p){
 	return o<<"("<<p.x<<", "<<p.y<<")";
 }
 
-#define MAP_GET(M, I, D) (M.count(I)?M.at(I):D)
+//-----bytes-----//
+typedef std::vector<uint8_t> Bytes;
 
-#define OBVIOUS_IF(PREDICATE, ACTION) (PREDICATE?((ACTION), 0):0)
+Bytes bytes(){ return Bytes(); }
+
+template<typename T, typename...Ts> Bytes bytes(T byte, Ts...args){
+	if(byte<0||byte>=0x100) throw std::logic_error("invalid byte");
+	Bytes r;
+	r.push_back(byte);
+	for(auto i: bytes(args...)) r.push_back(i);
+	return r;
+}
+
+//=====slices=====//
+template<typename T> struct Slice;
+
+template<typename T> Slice<T> slice(const std::vector<T>& v){
+	return Slice<T>{v.data(), v.size()};
+}
+template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned size){
+	Slice<T> r{v.data(), v.size()};
+	r.checkSize(v);
+	return r;
+}
+template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned start, unsigned finish){
+	if(start>finish) throw std::logic_error("bad slice -- start after finish");
+	Slice<T> r{v.data()+start, finish-start};
+	r.checkSize(v);
+	return r;
+}
+Slice<uint8_t> slice(const std::string& s);
+
+template<typename T> struct Slice{
+	operator std::vector<T>() const { return std::vector<T>(_p, _p+_size); }
+	bool operator==(Slice other) const { return _size==other._size&&!memcmp(_p, other._p, _size); }
+	bool operator!=(Slice other) const { return !(*this==other); }
+	bool operator!=(const std::vector<T>& other) const { return *this!=slice(other); }
+	bool operator!=(const std::string& other) const { return *this!=slice(other); }
+	std::vector<T> operator+(Slice other){
+		std::vector<T> r(_p, _p+_size);
+		r.insert(r.end(), other._p, other._p+other._size);
+		return r;
+	}
+	std::vector<T> operator+(const std::vector<T>& other){
+		return *this+slice(other);
+	}
+	void checkSize(const std::vector<T>& v) const {
+		if(_size>v.size()) throw std::logic_error("bad slice -- size too large");
+	}
+	const T* _p;
+	const std::size_t _size;
+};
+
+Slice<uint8_t> slice(const std::string& s){
+	return Slice<uint8_t>{(uint8_t*)s.data(), s.size()};
+}
+
+template<typename T> void operator+=(std::vector<T>& a, Slice<T> b){
+	a.insert(a.end(), b._p, b._p+b._size);
+}

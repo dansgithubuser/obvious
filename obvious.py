@@ -22,18 +22,21 @@ class Path:
 	@staticmethod
 	def canonicalize(path):
 		start=os.getcwd()
-		home=os.path.split(os.path.realpath(path))
+		home=os.path.dirname(os.path.realpath(path))
 		os.chdir(home)
 		return (Path(start), Path(home))
 
 	def __init__(self, s=None, p=None, g=None, r=None):
-		if s: self.p=os.path.join(*[i if i else '/' for i in s.split('/')])
+		if s:
+			s=s.split('/')
+			if s[0]=='': s[0]='/'
+			self.p=os.path.join(*s)
 		elif p: self.p=p
 		elif g:
 			import glob
 			x=glob.glob(g)
-			assert(len(x)==1)
-			self.p=x[0]
+			assert(len(x)<=1)
+			if len(x)>0: self.p=x[0]
 		elif r:
 			sep=os.path.sep
 			if sep=='\\': sep='\\\\'
@@ -56,9 +59,7 @@ class Path:
 
 	def __str__(self): return self.p
 
-	def __add__(self, s): return self.join(s)
-
-	def join(self, s): return Path(os.path.join(self.p, Path(s).p))
+	def join(self, s): return Path(os.path.join(self.p, *s.split('/')))
 
 	def cd(self): os.chdir(self.p)
 
@@ -66,3 +67,8 @@ class Path:
 		r=self.p
 		for i in range(n): r=os.path.split(r)[0]
 		return Path(r)
+
+	def make(self):
+		try: os.makedirs(self.p)
+		except: pass
+		assert os.path.isdir(self.p)
