@@ -72,3 +72,32 @@ class Path:
 		try: os.makedirs(self.p)
 		except: pass
 		assert os.path.isdir(self.p)
+
+#=====timestamp=====#
+def timestamp(ambiguous=True):
+	import datetime
+	format='{:%Y-%m'
+	if not ambiguous: format+='-%b'
+	format+='-%d %H:%M:%S.%f}'
+	return format.format(datetime.datetime.now()).lower()
+
+#=====subprocess=====#
+def invoke(command, capture_stdout=False, silent=False, capture_all=False, asynchronous=False, library_path=None):
+	if library_path:
+		import platform
+		if platform.system()=='Darwin': command='DYLD_LIBRARY_PATH={} {}'.format(library_path, command)
+		elif platform.system()=='Linux': command='LD_LIBRARY_PATH={} {}'.format(library_path, command)
+	if not silent:
+		print('time: '+timestamp())
+		print('invoking: '+command)
+		print('in: '+os.getcwd())
+	import subprocess
+	if asynchronous:
+		return subprocess.Popen(command, shell=True, stdin=subprocess.PIPE)
+	if capture_stdout:
+		return subprocess.check_output(command, shell=True).decode('utf-8')
+	if capture_all:
+		p=subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+		p.wait()
+		return (p.returncode, p.stdout.read().decode('utf-8'))
+	subprocess.check_call(command, shell=True)
