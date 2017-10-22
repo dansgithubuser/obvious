@@ -82,22 +82,22 @@ def timestamp(ambiguous=True):
 	return format.format(datetime.datetime.now()).lower()
 
 #=====subprocess=====#
-def invoke(command, capture_stdout=False, silent=False, capture_all=False, asynchronous=False, library_path=None):
+def invoke(invocation, capture_stdout=False, silent=False, capture_all=False, asynchronous=False, library_path=None):
 	if library_path:
 		import platform
-		if platform.system()=='Darwin': command='DYLD_LIBRARY_PATH={} {}'.format(library_path, command)
-		elif platform.system()=='Linux': command='LD_LIBRARY_PATH={} {}'.format(library_path, command)
+		if platform.system()=='Darwin': invocation='DYLD_LIBRARY_PATH={} {}'.format(library_path, invocation)
+		elif platform.system()=='Linux': invocation='LD_LIBRARY_PATH={} {}'.format(library_path, invocation)
 	if not silent:
 		print('time: '+timestamp())
-		print('invoking: '+command)
+		print('invoking: '+invocation)
 		print('in: '+os.getcwd())
 	import subprocess
 	if asynchronous:
-		return subprocess.Popen(command, shell=True, stdin=subprocess.PIPE)
+		return subprocess.Popen(invocation, shell=True, stdin=subprocess.PIPE)
 	if capture_stdout:
-		return subprocess.check_output(command, shell=True).decode('utf-8')
+		return subprocess.check_output(invocation, shell=True).decode('utf-8')
 	if capture_all:
-		p=subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+		p=subprocess.Popen(invocation, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 		p.wait()
 		return (p.returncode, p.stdout.read().decode('utf-8'))
-	subprocess.check_call(command, shell=True)
+	subprocess.check_call(invocation, shell=True)
