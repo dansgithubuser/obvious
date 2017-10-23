@@ -12,3 +12,16 @@
 
 #define STP STS(std::cout)
 
+#ifdef __GNUC__
+	#include <signal.h>
+	#include <cstdlib>
+	
+	static void stseghandler(int sig){
+		STP
+		exit(1);
+	}
+	
+	static void stseg(){
+		signal(SIGSEGV, stseghandler);
+	}
+#endif
