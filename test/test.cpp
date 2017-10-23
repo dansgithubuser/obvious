@@ -1,4 +1,4 @@
-#include "../obvious.hpp"
+#include "../cpp/obvious.hpp"
 
 int main(){
 	const std::vector<int> v0{0};
