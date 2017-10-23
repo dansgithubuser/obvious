@@ -8,6 +8,7 @@ but it's not necessarily obvious to make into convenient C++...
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <set>
@@ -65,6 +66,12 @@ static void replace(std::string& s, const std::string& a, const std::string& b){
 }
 
 //=====printing=====//
+std::ostream& operator<<(std::ostream& o, uint8_t c){
+	std::stringstream ss;
+	ss<<std::hex<<std::setfill('0')<<std::setw(2)<<(unsigned)c;
+	return o<<ss.str();
+}
+
 //-----container printing-----//
 template<typename T> std::ostream& streamContainer(std::ostream& o, const T& t, std::string prefix){
 	//figure out if big or not
