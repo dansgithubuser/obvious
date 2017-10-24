@@ -66,7 +66,7 @@ static void replace(std::string& s, const std::string& a, const std::string& b){
 }
 
 //=====printing=====//
-std::ostream& operator<<(std::ostream& o, uint8_t c){
+static std::ostream& operator<<(std::ostream& o, uint8_t c){
 	std::stringstream ss;
 	ss<<std::hex<<std::setfill('0')<<std::setw(2)<<(unsigned)c;
 	return o<<ss.str();
@@ -150,7 +150,7 @@ template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const
 OBV_PLUS_EQUALS(std::set)
 OBV_PLUS_EQUALS(std::vector)
 
-void operator+=(std::vector<uint8_t>& a, const std::string& b){
+static void operator+=(std::vector<uint8_t>& a, const std::string& b){
 	a.insert(a.end(), b.data(), b.data()+b.size());
 }
 
@@ -171,7 +171,7 @@ template<typename T> std::vector<T> operator+(const std::vector<T>& a, const std
 //=====expressions=====//
 #define OBV_IF(PREDICATE, ACTION) (PREDICATE?((ACTION), 0):0)
 
-bool toss(const char* message){ throw std::runtime_error(message); return false; }
+static bool toss(const char* message){ throw std::runtime_error(message); return false; }
 
 //-----list comprehensions-----//
 #define OBV_FOR(CONTAINER, F, INITIAL)[&](){\
@@ -213,7 +213,7 @@ static std::ostream& operator<<(std::ostream& o, const Pair& p){
 //-----bytes-----//
 typedef std::vector<uint8_t> Bytes;
 
-Bytes bytes(){ return Bytes(); }
+static Bytes bytes(){ return Bytes(); }
 
 template<typename T, typename...Ts> Bytes bytes(T byte, Ts...args){
 	if(byte<0||byte>=0x100) throw std::logic_error("invalid byte");
@@ -240,7 +240,7 @@ template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned start, uns
 	r.checkSize(v);
 	return r;
 }
-Slice<uint8_t> slice(const std::string& s);
+static Slice<uint8_t> slice(const std::string& s);
 
 template<typename T> class Slice{
 	public:
