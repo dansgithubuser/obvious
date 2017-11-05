@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 
+//print stack trace to stream
 #define STS(S){\
 	backward::StackTrace st;\
 	st.load_here(32);\
@@ -10,6 +11,7 @@
 	p.print(st, S);\
 }
 
+//print stack trace to std::cout
 #define STP STS(std::cout)
 
 #ifdef __GNUC__
@@ -20,7 +22,8 @@
 		STP
 		exit(1);
 	}
-	
+
+	//install signal handler for segmentation fault that prints stack trace to std::cout
 	static void stseg(){
 		signal(SIGSEGV, stseghandler);
 	}
