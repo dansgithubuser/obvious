@@ -234,9 +234,9 @@ template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned size){
 	r.checkSize(v);
 	return r;
 }
-template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned start, unsigned finish){
-	if(start>finish) throw std::logic_error("bad slice -- start after finish");
-	Slice<T> r(v.data()+start, finish-start);
+template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned start, unsigned size){
+	if(UINT_MAX-start<size) throw std::logic_error("bad slice -- end too far");
+	Slice<T> r(v.data()+start, size);
 	r.checkSize(v);
 	return r;
 }
