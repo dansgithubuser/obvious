@@ -1,3 +1,6 @@
+#ifndef OBVIOUS_HPP_INCLUDED
+#define OBVIOUS_HPP_INCLUDED
+
 /*
 obvious stuff
 in the sense that you obviously want this
@@ -6,6 +9,7 @@ but it's not necessarily obvious to make into convenient C++...
 */
 
 #include <algorithm>
+#include <climits>
 #include <cstdint>
 #include <cstring>
 #include <iomanip>
@@ -224,20 +228,18 @@ template<typename T, typename...Ts> Bytes bytes(T byte, Ts...args){
 }
 
 //=====slices=====//
-template<typename T> struct Slice;
+template<typename T> class Slice;
 
 template<typename T> Slice<T> slice(const std::vector<T>& v){
 	return Slice<T>(v.data(), v.size());
 }
 template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned size){
-	Slice<T> r(v.data(), size);
-	r.checkSize(v);
+	Slice<T> r(v.data(), OBV_MIN(size, v.size()));
 	return r;
 }
 template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned start, unsigned size){
-	if(UINT_MAX-start<size) throw std::logic_error("bad slice -- end too far");
-	Slice<T> r(v.data()+start, size);
-	r.checkSize(v);
+	if(start>v.size()) throw std::logic_error("bad slice -- start too far");
+	Slice<T> r(v.data()+start, OBV_MIN(size, v.size()-start));
 	return r;
 }
 static Slice<uint8_t> slice(const std::string& s);
@@ -258,9 +260,6 @@ template<typename T> class Slice{
 		std::vector<T> operator+(const std::vector<T>& other){
 			return *this+slice(other);
 		}
-		void checkSize(const std::vector<T>& v) const {
-			if(_size>v.size()) throw std::logic_error("bad slice -- size too large");
-		}
 		const T* ptr() const { return _ptr; }
 		std::size_t size() const { return _size; }
 	private:
@@ -275,3 +274,9 @@ Slice<uint8_t> slice(const std::string& s){
 template<typename T> void operator+=(std::vector<T>& a, Slice<T> b){
 	a.insert(a.end(), b.ptr(), b.ptr()+b.size());
 }
+
+template<typename T> std::ostream& operator<<(std::ostream& o, Slice<T> slice){
+	return o<<std::vector<T>(slice);
+}
+
+#endif
