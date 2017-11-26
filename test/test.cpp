@@ -5,6 +5,7 @@ int main(){
 	const std::vector<int> v0123{0, 1, 2, 3};
 	const std::vector<int> v123{1, 2, 3};
 	//test stuff
+	std::cout<<"test stuff\n";
 	{
 		bool ok=false;
 		try{ EXPECT(true, false) }
@@ -12,6 +13,7 @@ int main(){
 		if(!ok) throw std::logic_error("expectations aren't working");
 	}
 	//typical vector operations
+	std::cout<<"typical vector operations\n";
 	{
 		EXPECT(index(2, v123), 1)
 		EXPECT(index(4, v123), 3)
@@ -25,6 +27,7 @@ int main(){
 		EXPECT(in(3, v), true)
 	}
 	//typical map operations
+	std::cout<<"typical map operations\n";
 	{
 		const std::map<int, std::string> m{{1, "a"}, {2, "b"}, {3, "c"}};
 		auto k=keys(m);
@@ -33,18 +36,53 @@ int main(){
 		EXPECT(MAP_GET(m, 4, "z"), "z")
 	}
 	//typical string operations
+	std::cout<<"typical string operations\n";
 	{
 		std::string s("a man a plan a canal panama");
-		replace(s, " a ", "a");
-		EXPECT(s, "a manaplanacanal panama");
+		std::string r=s;
+		replace(r, " a ", "a");
+		EXPECT(r, "a manaplanacanal panama")
+		EXPECT(startsWith(s, ""), true)
+		EXPECT(startsWith(s, "a man"), true)
+		EXPECT(startsWith(s, "banana"), false)
+		std::stringstream ss(s);
+		EXPECT(peek(ss, 5), "a man")
+		EXPECT(peek(ss, 5), "a man")
+		EXPECT(read(ss, 5), "a man")
+		EXPECT(read(ss, 5), " a pl")
+		EXPECT(read(ss, 80), "an a canal panama")
+		EXPECT(read(ss, 5), "")
+		EXPECT(peek(ss, 5), "")
+	}
+	//print/parse
+	std::cout<<"print/parse\n";
+	{
+		std::vector<std::string> v{"a", "b", "c"};
+		std::map<std::string, std::string> m{{"a", "A"}, {"b", "B"}, {"c", "C"}};
+		std::vector<uint8_t> b{0, 1, 2};
+		std::stringstream ss;
+		ss<<v<<" "<<m<<" "<<b;
+		decltype(v) v2;
+		decltype(m) m2;
+		decltype(b) b2;
+		ss>>v2;
+		ss>>" ";
+		ss>>m2;
+		ss>>" ";
+		ss>>b2;
+		EXPECT(v, v2)
+		EXPECT(m, m2)
+		EXPECT(b, b2)
 	}
 	//vector operator+= overload
+	std::cout<<"vector operator+= overload\n";
 	{
 		auto v=v0;
 		v+=v123;
 		EXPECT(v, v0123);
 	}
 	//set operator+= overload
+	std::cout<<"set operator+= overload\n";
 	{
 		const std::set<int> s123{1, 2, 3};
 		std::set<int> s{0, 1};
@@ -54,11 +92,13 @@ int main(){
 		EXPECT(v, v0123);
 	}
 	//vector operator+ overload
+	std::cout<<"vector operator+ overload\n";
 	{
 		auto v=v0+v123;
 		EXPECT(v, v0123);
 	}
 	//min and max
+	std::cout<<"min and max\n";
 	{
 		EXPECT(OBV_MIN(1, 2), 1);
 		EXPECT(OBV_MAX(1, 2), 2);
@@ -69,6 +109,7 @@ int main(){
 		OBV_MAXI(a, c); EXPECT(a, 3)
 	}
 	//obvious if
+	std::cout<<"obvious if\n";
 	{
 		std::vector<int> v;
 		for(unsigned i=0; i<5; ++i, OBV_IF(i%2, v.push_back(i)));
@@ -76,6 +117,7 @@ int main(){
 		EXPECT(v, v135)
 	}
 	//list comprehensions
+	std::cout<<"list comprehensions\n";
 	{
 		std::vector<int> v13{1, 3};
 		EXPECT(OBV_FOR(v123, if(*i%2) r.push_back(*i), std::vector<int>()), v13)
@@ -84,6 +126,7 @@ int main(){
 		EXPECT(OBV_FOR2(v123, r&=*a==*b, true), false)
 	}
 	//Cartesian coordinates
+	std::cout<<"Cartesian coordinates\n";
 	{
 		std::vector<Pair> p{{3, 4}, {6, 7}, {3, 5}};
 		EXPECT(p[1].x, 6) EXPECT(p[1].y, 7)
@@ -92,6 +135,7 @@ int main(){
 		EXPECT(p, p2)
 	}
 	//bytes
+	std::cout<<"bytes\n";
 	{
 		int x=3;
 		auto b=bytes(0, x);
@@ -99,6 +143,7 @@ int main(){
 		EXPECT(b, v)
 	}
 	//slices
+	std::cout<<"slices\n";
 	{
 		auto s1=slice(v123);
 		EXPECT(s1.size(), 3)
