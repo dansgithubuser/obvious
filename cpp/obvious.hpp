@@ -95,6 +95,21 @@ static std::string peek(std::istream& istream, unsigned size){
 }
 
 //=====printing=====//
+template<typename T> void obvstream(std::stringstream& ss, T t){
+	ss<<t;
+}
+
+template<typename T, typename... Ts> void obvstream(std::stringstream& ss, T t, Ts... ts){
+	ss<<t<<" ";
+	obvstream(ss, ts...);
+}
+
+template<typename... Ts> std::string obvstr(Ts... ts){
+	std::stringstream ss;
+	obvstream(ss, ts...);
+	return ss.str();
+}
+
 static std::ostream& operator<<(std::ostream& o, uint8_t c){
 	std::stringstream ss;
 	ss<<std::hex<<std::setfill('0')<<std::setw(2)<<(unsigned)c;
