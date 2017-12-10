@@ -54,6 +54,13 @@ int main(){
 		EXPECT(read(ss, 5), "")
 		EXPECT(peek(ss, 5), "")
 	}
+	{
+		std::stringstream ss(" \n a ");
+		EXPECT(more(ss), true)
+		std::string s;
+		ss>>s;
+		EXPECT(more(ss), false)
+	}
 	//print/parse
 	std::cout<<"print/parse\n";
 	{
