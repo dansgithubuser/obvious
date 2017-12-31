@@ -63,7 +63,7 @@ template<typename T, typename U> std::vector<T> keys(const std::map<T, U>& map){
 #define MAP_GET(M, I, D) (M.count(I)?M.at(I):D)
 
 //-----typical string operations-----//
-static void replace(std::string& s, const std::string& a, const std::string& b){
+static inline void replace(std::string& s, const std::string& a, const std::string& b){
 	size_t i=0;
 	while(true){
 		i=s.find(a, i);
@@ -73,7 +73,7 @@ static void replace(std::string& s, const std::string& a, const std::string& b){
 	}
 }
 
-static bool startsWith(const std::string& s, const std::string& t){
+static inline bool startsWith(const std::string& s, const std::string& t){
 	for(unsigned i=0; i<t.size(); ++i){
 		if(i>=s.size()) return false;
 		if(s[i]!=t[i]) return false;
@@ -81,20 +81,20 @@ static bool startsWith(const std::string& s, const std::string& t){
 	return true;
 }
 
-static std::string read(std::istream& istream, unsigned size){
+static inline std::string read(std::istream& istream, unsigned size){
 	std::vector<char> result(size+1, '\0');
 	istream.read(result.data(), size);
 	return std::string(result.data());
 }
 
-static std::string peek(std::istream& istream, unsigned size){
+static inline std::string peek(std::istream& istream, unsigned size){
 	auto position=istream.tellg();
 	auto result=read(istream, size);
 	istream.seekg(position);
 	return result;
 }
 
-static bool more(std::istream& istream){
+static inline bool more(std::istream& istream){
 	auto position=istream.tellg();
 	std::string s;
 	bool result=false;
@@ -119,7 +119,7 @@ template<typename... Ts> std::string obvstr(Ts... ts){
 	return ss.str();
 }
 
-static std::ostream& operator<<(std::ostream& o, uint8_t c){
+static inline std::ostream& operator<<(std::ostream& o, uint8_t c){
 	std::stringstream ss;
 	ss<<std::hex<<std::setfill('0')<<std::setw(2)<<(unsigned)c;
 	return o<<ss.str();
@@ -154,7 +154,7 @@ template<typename T> std::string serialize(const T* t){
 	return ss.str();
 }
 
-static std::string serialize(std::string s){
+static inline std::string serialize(std::string s){
 	std::stringstream ss;
 	replace(s, "\"", "\\\"");
 	replace(s, "\\", "\\\\");
@@ -219,7 +219,7 @@ template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const
 }
 
 //=====parsing=====//
-static std::istream& operator>>(std::istream& i, uint8_t& c){
+static inline std::istream& operator>>(std::istream& i, uint8_t& c){
 	unsigned u;
 	auto flags=i.flags();
 	i>>std::hex>>u;
@@ -240,13 +240,13 @@ template<typename T> std::istream& operator>>(std::istream& istream, std::set<T>
 template<typename T, typename U> std::istream& operator>>(std::istream& istream, KeyValuePair<T, U>& p);
 template<typename T, typename U> std::istream& operator>>(std::istream& istream, std::map<T, U>& c);
 template<typename T, typename U> std::istream& operator>>(std::istream& istream, std::pair<T, U>& p);
-static std::istream& operator>>(std::istream& istream, const char* cString);
+static inline std::istream& operator>>(std::istream& istream, const char* cString);
 
 template<typename T> std::istream& deserialize(T& t, std::istream& istream){
 	return istream>>t;
 }
 
-static std::istream& deserialize(std::string& s, std::istream& istream){
+static inline std::istream& deserialize(std::string& s, std::istream& istream){
 	if(read(istream, 1)!="\"") throw std::runtime_error("std::string doesn't start with \"");
 	while(true){
 		auto next=read(istream, 1);
@@ -257,7 +257,7 @@ static std::istream& deserialize(std::string& s, std::istream& istream){
 	return istream;
 }
 
-static std::istream& deserialize(const char* cString, std::istream& istream){
+static inline std::istream& deserialize(const char* cString, std::istream& istream){
 	std::string string(cString);
 	if(read(istream, string.size())!=string) throw std::runtime_error("bad serialization");
 	return istream;
@@ -331,7 +331,7 @@ template<typename T, typename U> std::istream& operator>>(std::istream& istream,
 	return istream;
 }
 
-static std::istream& operator>>(std::istream& istream, const char* cString){
+static inline std::istream& operator>>(std::istream& istream, const char* cString){
 	std::string string(cString);
 	auto actual=read(istream, string.size());
 	if(actual!=string){
@@ -362,7 +362,7 @@ static std::istream& operator>>(std::istream& istream, const char* cString){
 OBV_PLUS_EQUALS(std::set)
 OBV_PLUS_EQUALS(std::vector)
 
-static void operator+=(std::vector<uint8_t>& a, const std::string& b){
+static inline void operator+=(std::vector<uint8_t>& a, const std::string& b){
 	a.insert(a.end(), b.data(), b.data()+b.size());
 }
 
@@ -383,7 +383,7 @@ template<typename T> std::vector<T> operator+(const std::vector<T>& a, const std
 //=====expressions=====//
 #define OBV_IF(PREDICATE, ACTION) (PREDICATE?((ACTION), 0):0)
 
-static bool toss(const char* message){ throw std::runtime_error(message); return false; }
+static inline bool toss(const char* message){ throw std::runtime_error(message); return false; }
 
 //-----list comprehensions-----//
 #define OBV_FOR(CONTAINER, F, INITIAL)[&](){\
@@ -418,14 +418,14 @@ struct Pair{
 	int x, y;
 };
 
-static std::ostream& operator<<(std::ostream& o, const Pair& p){
+static inline std::ostream& operator<<(std::ostream& o, const Pair& p){
 	return o<<"["<<p.x<<", "<<p.y<<"]";
 }
 
 //-----bytes-----//
 typedef std::vector<uint8_t> Bytes;
 
-static Bytes bytes(){ return Bytes(); }
+static inline Bytes bytes(){ return Bytes(); }
 
 template<typename T, typename...Ts> Bytes bytes(T byte, Ts...args){
 	if(byte<0||byte>=0x100) throw std::logic_error("invalid byte");
@@ -450,7 +450,7 @@ template<typename T> Slice<T> slice(const std::vector<T>& v, unsigned start, uns
 	Slice<T> r(v.data()+start, OBV_MIN(size, v.size()-start));
 	return r;
 }
-static Slice<uint8_t> slice(const std::string& s);
+static inline Slice<uint8_t> slice(const std::string& s);
 
 template<typename T> class Slice{
 	public:
