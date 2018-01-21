@@ -1,12 +1,20 @@
 #!/usr/bin/env python
 
+import ctypes
+import datetime
+import glob
+import os
+import platform
+import pprint
+import re
+import subprocess
+
 #=====Python 2/3 compatibility=====#
 try: input=raw_input
 except: pass
 
 #=====peer repo management=====#
 def ensure_repo(path, name, url):
-	import os, subprocess
 	if not os.path.exists(os.path.join(path, name)):
 		start=os.getcwd()
 		os.chdir(path)
@@ -16,8 +24,6 @@ def ensure_repo(path, name, url):
 		os.chdir(start)
 
 #=====Python 2/3 path stuff=====#
-import os
-
 class Path:
 	@staticmethod
 	def canonicalize(path):
@@ -33,7 +39,6 @@ class Path:
 			self.p=os.path.join(*s)
 		elif p: self.p=p
 		elif g:
-			import glob
 			x=glob.glob(g)
 			assert(len(x)<=1)
 			if len(x)>0: self.p=x[0]
@@ -41,7 +46,6 @@ class Path:
 			sep=os.path.sep
 			if sep=='\\': sep='\\\\'
 			r=r.replace('/', sep)
-			import re
 			for root, dirs, files in os.walk('.'):
 				for i in dirs+files:
 					x=os.path.join(root, i)
@@ -75,7 +79,6 @@ class Path:
 
 #=====timestamp=====#
 def timestamp(ambiguous=True):
-	import datetime
 	format='{:%Y-%m'
 	if not ambiguous: format+='-%b'
 	format+='-%d %H:%M:%S.%f}'
@@ -84,14 +87,12 @@ def timestamp(ambiguous=True):
 #=====subprocess=====#
 def invoke(invocation, capture_stdout=False, silent=False, capture_all=False, asynchronous=False, library_path=None):
 	if library_path:
-		import platform
 		if platform.system()=='Darwin': invocation='DYLD_LIBRARY_PATH={} {}'.format(library_path, invocation)
 		elif platform.system()=='Linux': invocation='LD_LIBRARY_PATH={} {}'.format(library_path, invocation)
 	if not silent:
 		print('time: '+timestamp())
 		print('invoking: '+invocation)
 		print('in: '+os.getcwd())
-	import subprocess
 	if asynchronous:
 		return subprocess.Popen(invocation, shell=True, stdin=subprocess.PIPE)
 	if capture_stdout:
@@ -101,3 +102,13 @@ def invoke(invocation, capture_stdout=False, silent=False, capture_all=False, as
 		p.wait()
 		return (p.returncode, p.stdout.read().decode('utf-8'))
 	subprocess.check_call(invocation, shell=True)
+
+#=====ctypes=====#
+def load_lib(name, paths=['.']):
+	attempted_paths=[]
+	for base in paths:
+		attempted_paths.append(os.path.realpath(base))
+		for path in glob.glob(os.path.join(base, '*{}.*'.format(name))):
+			try: return ctypes.CDLL(path)
+			except: pass
+	else: raise Exception("couldn't load lib, attempted paths:\n{}".format(pprint.pformat(attempted_paths)))
