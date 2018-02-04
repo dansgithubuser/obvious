@@ -60,6 +60,11 @@ template<typename T, typename U> std::vector<T> keys(const std::map<T, U>& map){
 	return result;
 }
 
+template <typename T, typename U> void eraseKey(const T& key, U& map){
+	auto i=map.find(key);
+	if(i!=map.end()) map.erase(i);
+}
+
 #define MAP_GET(M, I, D) (M.count(I)?M.at(I):D)
 
 //-----typical string operations-----//
