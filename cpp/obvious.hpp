@@ -390,6 +390,16 @@ template<typename T> std::vector<T> operator+(const std::vector<T>& a, const std
 
 static inline bool toss(const char* message){ throw std::runtime_error(message); return false; }
 
+#define OBV_FOR_MAP(MAP, F){\
+	size_t i=0;\
+	for(const auto& j: MAP){\
+		const auto& k=j.first;\
+		const auto& v=j.second;\
+		F;\
+		++i;\
+	}\
+}
+
 //-----list comprehensions-----//
 #define OBV_FOR(CONTAINER, F, INITIAL)[&](){\
 	auto r=INITIAL;\
