@@ -112,3 +112,11 @@ def load_lib(name, paths=['.']):
 			try: return ctypes.CDLL(path)
 			except: pass
 	else: raise Exception("couldn't load lib {}, attempted paths:\n{}".format(name, pprint.pformat(attempted_paths)))
+
+def set_ffi_types(ff, restype=None, *argtypes):
+	conversions={
+		int: ctypes.c_int,
+		str: ctypes.c_char_p,
+	}
+	ff.restype=conversions.get(restype, restype)
+	ff.argtypes=[conversions.get(i, i) for i in argtypes]
