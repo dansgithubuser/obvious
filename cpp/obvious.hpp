@@ -118,6 +118,9 @@ template<typename T, typename... Ts> void obvstream(std::stringstream& ss, T t, 
 	obvstream(ss, ts...);
 }
 
+//when you want to convert stuff to a string and have spaces between items
+//<< is usually sufficient for conversion
+//if you want an expression, can use (std::stringstream()<<stuff).str()
 template<typename... Ts> std::string obvstr(Ts... ts){
 	std::stringstream ss;
 	obvstream(ss, ts...);
