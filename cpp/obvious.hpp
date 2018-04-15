@@ -422,22 +422,27 @@ static inline bool toss(const char* message){ throw std::runtime_error(message);
 
 //=====types=====//
 //-----Cartesian coordinates-----//
-struct Pair{
-	Pair(int x, int y): x(x), y(y) {}
-	bool operator<(const Pair& other) const{
+template<typename T> struct CartesianPair{
+	CartesianPair(){}
+	CartesianPair(T x, T y): x(x), y(y) {}
+	bool operator<(const CartesianPair& other) const{
 		if(x<other.x) return true;
 		if(x>other.x) return false;
 		if(y<other.y) return true;
 		return false;
 	}
-	bool operator==(const Pair& other) const{
+	bool operator==(const CartesianPair& other) const{
 		return x==other.x&&y==other.y;
 	}
-	int x, y;
+	T x, y;
 };
 
-static inline std::ostream& operator<<(std::ostream& o, const Pair& p){
+template<typename T> std::ostream& operator<<(std::ostream& o, const CartesianPair<T>& p){
 	return o<<"["<<p.x<<", "<<p.y<<"]";
+}
+
+template<typename T> std::istream& operator>>(std::istream& i, CartesianPair<T>& p){
+	return i>>"[">>p.x>>", ">>p.y>>"]";
 }
 
 //-----bytes-----//
