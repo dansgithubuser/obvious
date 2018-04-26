@@ -109,6 +109,8 @@ def load_lib(name, paths=['.']):
 	for base in paths:
 		attempted_paths.append(os.path.realpath(base))
 		for path in glob.glob(os.path.join(base, '*{}.*'.format(name))):
+			file_name=os.path.basename(path)
+			if not re.match(r'(lib)?{}\.(so|dylib|dll)$'.format(name), file_name): continue
 			try: return ctypes.CDLL(path)
 			except: pass
 	else: raise Exception("couldn't load lib {}, attempted paths:\n{}".format(name, pprint.pformat(attempted_paths)))
