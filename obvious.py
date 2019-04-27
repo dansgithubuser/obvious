@@ -107,8 +107,28 @@ def load_lib(name, paths=['.']):
 
 def set_ffi_types(ff, restype=None, *argtypes):
 	conversions={
+		bool: ctypes.c_bool,
 		int: ctypes.c_int,
+		float: ctypes.c_float,
 		str: ctypes.c_char_p,
+		'void*': ctypes.c_void_p,
 	}
 	ff.restype=conversions.get(restype, restype)
 	ff.argtypes=[conversions.get(i, i) for i in argtypes]
+
+def python_3_string_prep(lib):
+	def code_if_str(x, d):
+		if type(x)==str and d=='en': return x.encode('utf-8')
+		if type(x)==bytes and d=='de': return x.decode('utf-8')
+		return x
+	class Coder:
+		def __init__(self, raw): self.raw=raw
+		def __call__(self, *args): return code_if_str(
+			self.raw(*[
+				code_if_str(i, 'en') for i in args
+			]),
+			'de',
+		)
+	for member_name in dir(lib):
+		if member_name.startswith('_'): continue
+		setattr(lib, member_name, Coder(getattr(lib, member_name)))
