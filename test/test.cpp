@@ -40,8 +40,9 @@ int main(){
 	{
 		std::string s("a man a plan a canal panama");
 		std::string r=s;
-		replace(r, " a ", "a");
+		EXPECT(replace(r, " a ", "a"), "a manaplanacanal panama")
 		EXPECT(r, "a manaplanacanal panama")
+		EXPECT(replace("treble", "treble", "bass"), "bass")
 		EXPECT(startsWith(s, ""), true)
 		EXPECT(startsWith(s, "a man"), true)
 		EXPECT(startsWith(s, "banana"), false)

@@ -74,7 +74,7 @@ template <typename T, typename U> U& rekey(std::map<T, U>& map, const T& keyI, c
 #define MAP_GET(M, I, D) (M.count(I)?M.at(I):D)
 
 //-----typical string operations-----//
-static inline void replace(std::string& s, const std::string& a, const std::string& b){
+static inline std::string& replace(std::string& s, const std::string& a, const std::string& b){
 	size_t i=0;
 	while(true){
 		i=s.find(a, i);
@@ -82,6 +82,12 @@ static inline void replace(std::string& s, const std::string& a, const std::stri
 		s.replace(i, a.size(), b);
 		i+=b.size();
 	}
+	return s;
+}
+
+static inline std::string replace(const std::string& s, const std::string& a, const std::string& b){
+	std::string r=s;
+	return replace(r, a, b);
 }
 
 static inline bool startsWith(const std::string& s, const std::string& t){
