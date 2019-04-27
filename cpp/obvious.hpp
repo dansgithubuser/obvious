@@ -65,6 +65,12 @@ template <typename T, typename U> void eraseKey(const T& key, U& map){
 	if(i!=map.end()) map.erase(i);
 }
 
+template <typename T, typename U> U& rekey(std::map<T, U>& map, const T& keyI, const T& keyF){
+	U& r=map[keyF]=map.at(keyI);
+	map.erase(keyI);
+	return r;
+}
+
 #define MAP_GET(M, I, D) (M.count(I)?M.at(I):D)
 
 //-----typical string operations-----//
