@@ -135,10 +135,10 @@ int main(){
 	//Cartesian coordinates
 	std::cout<<"Cartesian coordinates\n";
 	{
-		std::vector<Pair> p{{3, 4}, {6, 7}, {3, 5}};
+		std::vector<CartesianPair<int>> p{{3, 4}, {6, 7}, {3, 5}};
 		EXPECT(p[1].x, 6) EXPECT(p[1].y, 7)
 		std::sort(p.begin(), p.end());
-		std::vector<Pair> p2{{3, 4}, {3, 5}, {6, 7}};
+		std::vector<CartesianPair<int>> p2{{3, 4}, {3, 5}, {6, 7}};
 		EXPECT(p, p2)
 	}
 	//bytes
