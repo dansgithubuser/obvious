@@ -13,16 +13,6 @@ import subprocess
 try: input=raw_input
 except: pass
 
-#=====peer repo management=====#
-def ensure_repo(path, name, url):
-	if not os.path.exists(os.path.join(path, name)):
-		start=os.getcwd()
-		os.chdir(path)
-		print("I need to clone {} repo. I'll do so in {}. Is this OK? (y/n)".format(name, os.getcwd()))
-		if input()!='y': raise Exception('user disallowed {} clone'.format(name))
-		subprocess.check_call('git clone {}'.format(url), shell=True)
-		os.chdir(start)
-
 #=====Python 2/3 path stuff=====#
 class Path:
 	@staticmethod
