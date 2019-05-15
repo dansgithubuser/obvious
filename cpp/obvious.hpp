@@ -28,7 +28,7 @@ but it's not necessarily obvious to make into convenient C++...
 	std::cout<<"\\===="<<#X<<"====/\n";
 
 //=====test stuff=====//
-#define EXPECT(ACTUAL, EXPECTED){\
+#define OBV_EXPECT(ACTUAL, EXPECTED){\
 	auto ACTUAL_VALUE=(ACTUAL);\
 	auto EXPECTED_VALUE=(EXPECTED);\
 	if(EXPECTED_VALUE!=ACTUAL_VALUE){\
