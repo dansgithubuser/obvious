@@ -33,7 +33,7 @@ but it's not necessarily obvious to make into convenient C++...
 	auto EXPECTED_VALUE=(EXPECTED);\
 	if(EXPECTED_VALUE!=ACTUAL_VALUE){\
 		std::stringstream ss;\
-		ss<<__FILE__<<"@"<<__LINE__<<": expected " #ACTUAL " to be "<<EXPECTED_VALUE<<" but got "<<ACTUAL_VALUE;\
+		ss<<__FILE__<<"@"<<__LINE__<<": expected " #ACTUAL " to be "<<::str(EXPECTED_VALUE)<<" but got "<<::str(ACTUAL_VALUE);\
 		throw std::logic_error(ss.str());\
 	}\
 }
@@ -121,60 +121,40 @@ static inline bool more(std::istream& istream){
 }
 
 //=====printing=====//
-template<typename T> void obvstream(std::stringstream& ss, T t){
-	ss<<t;
-}
-
-template<typename T, typename... Ts> void obvstream(std::stringstream& ss, T t, Ts... ts){
-	ss<<t<<" ";
-	obvstream(ss, ts...);
-}
-
-//when you want to convert stuff to a string and have spaces between items
-//<< is usually sufficient for conversion
-//if you want an expression, can use (std::stringstream()<<stuff).str()
-template<typename... Ts> std::string obvstr(Ts... ts){
-	std::stringstream ss;
-	obvstream(ss, ts...);
-	return ss.str();
-}
-
-static inline std::ostream& operator<<(std::ostream& o, uint8_t c){
-	std::stringstream ss;
-	ss<<std::hex<<std::setfill('0')<<std::setw(2)<<(unsigned)c;
-	return o<<ss.str();
-}
-
-//-----container printing-----//
-template<typename T, typename U> struct KeyValuePairConst{
-	KeyValuePairConst(const T& t, const U& u): key(t), value(u) {}
+template<typename T, typename U> struct _ObvKeyValuePairConst{
+	_ObvKeyValuePairConst(const T& t, const U& u): key(t), value(u) {}
 	const T& key;
 	const U& value;
 };
 
-template<typename T> std::ostream& operator<<(std::ostream& o, const std::vector<T>& c);
-template<typename T> std::ostream& operator<<(std::ostream& o, const std::set<T>& c);
-template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const std::pair<T, U>& p);
-template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const KeyValuePairConst<T, U>& p);
-template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const std::map<T, U>& c);
-template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const std::pair<T, U>& p);
-
+//-----generic-----//
 template<
 	typename T,
-	typename std::enable_if<!std::is_pointer<T>::value, int>::type=0
-> std::string serialize(const T& t){
+	typename std::enable_if<!std::is_pointer<T>::value, int>::type=0,
+	typename std::enable_if<!std::is_class<T>::value, int>::type=0
+> std::string _obvSerialize(T t){
 	std::stringstream ss;
 	ss<<t;
 	return ss.str();
 }
 
-template<typename T> std::string serialize(const T* t){
-	std::stringstream ss;
-	ss<<'"'<<t<<'"';
-	return ss.str();
+template<
+	typename T,
+	typename std::enable_if<!std::is_pointer<T>::value, int>::type=0,
+	typename std::enable_if<std::is_class<T>::value, int>::type=0
+> std::string _obvSerialize(T t){
+	return t.str();
 }
 
-static inline std::string serialize(std::string s){
+template<
+	typename T,
+	typename std::enable_if<std::is_pointer<T>::value, int>::type=0
+> std::string _obvSerialize(T t){
+	return t->str();
+}
+
+//-----specific-----//
+static inline std::string _obvSerialize(const std::string& s){
 	std::stringstream ss;
 	replace(s, "\"", "\\\"");
 	replace(s, "\\", "\\\\");
@@ -182,8 +162,36 @@ static inline std::string serialize(std::string s){
 	return ss.str();
 }
 
-template<typename T> std::ostream& streamContainer(
-	std::ostream& o,
+static inline std::string _obvSerialize(const char* s){
+	return s;
+}
+
+static inline std::string _obvSerialize(char* s){
+	return s;
+}
+
+static inline std::string _obvSerialize(const void* v){
+	std::stringstream ss;
+	ss<<v;
+	return ss.str();
+}
+
+static inline std::string _obvSerialize(void* v){
+	return _obvSerialize((const void*)v);
+}
+
+static inline std::string _obvSerialize(uint8_t c){
+	return _obvSerialize((unsigned)c);
+}
+
+//-----container-----//
+template<typename T> std::string _obvSerialize(const std::vector<T>& c);
+template<typename T> std::string _obvSerialize(const std::set<T>& c);
+template<typename T, typename U> std::string _obvSerialize(const _ObvKeyValuePairConst<T, U>& p);
+template<typename T, typename U> std::string _obvSerialize(const std::map<T, U>& c);
+template<typename T, typename U> std::string _obvSerialize(const std::pair<T, U>& p);
+
+template<typename T> std::string _obvSerializeContainer(
 	const T& t,
 	std::string prefix,
 	std::string open="<",
@@ -193,173 +201,222 @@ template<typename T> std::ostream& streamContainer(
 	bool big=false;
 	{
 		std::stringstream ss;
-		for(const auto& i: t) ss<<serialize(i)<<", ";
+		for(const auto& i: t) ss<<_obvSerialize(i)<<", ";
 		if(in('\n', ss.str())||ss.str().size()>72) big=true;
 	}
 	//meat
-	o<<prefix<<open;
-	if(big) o<<"\n";
+	std::stringstream ss;
+	ss<<prefix<<open;
+	if(big) ss<<"\n";
 	bool first=true;
 	for(const auto& i: t){
-		if(!first) o<<","<<(big?"\n":" ");
+		if(!first) ss<<","<<(big?"\n":" ");
 		first=false;
-		std::string s=serialize(i);
+		std::string s=_obvSerialize(i);
 		if(big){
 			s="\t"+s;
 			replace(s, "\n", "\n\t");
 		}
-		o<<s;
+		ss<<s;
 	}
-	if(big) o<<"\n";
-	o<<close;
-	return o;
+	if(big) ss<<"\n";
+	ss<<close;
+	return ss.str();
 }
 
-template<typename T> std::ostream& operator<<(std::ostream& o, const std::vector<T>& c){
-	return streamContainer(o, c, "", "[", "]");
+template<typename T> std::string _obvSerialize(const std::vector<T>& c){
+	return _obvSerializeContainer(c, "", "[", "]");
 }
 
-template<typename T> std::ostream& operator<<(std::ostream& o, const std::set<T>& c){
-	return streamContainer(o, c, "s");
+template<typename T> std::string _obvSerialize(const std::set<T>& c){
+	return _obvSerializeContainer(c, "s");
 }
 
-template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const KeyValuePairConst<T, U>& p){
-	return o<<serialize(p.key)<<": "<<serialize(p.value);
+template<typename T, typename U> std::string _obvSerialize(const _ObvKeyValuePairConst<T, U>& p){
+	std::stringstream ss;
+	ss<<_obvSerialize(p.key)<<": "<<_obvSerialize(p.value);
+	return ss.str();
 }
 
-template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const std::map<T, U>& c){
-	std::vector<KeyValuePairConst<T, U>> x;
-	for(const auto& i: c) x.push_back(KeyValuePairConst<T, U>(i.first, i.second));
-	return streamContainer(o, x, "", "{", "}");
+template<typename T, typename U> std::string _obvSerialize(const std::map<T, U>& c){
+	std::vector<_ObvKeyValuePairConst<T, U>> x;
+	for(const auto& i: c) x.push_back(_ObvKeyValuePairConst<T, U>(i.first, i.second));
+	return _obvSerializeContainer(x, "", "{", "}");
 }
 
-template<typename T, typename U> std::ostream& operator<<(std::ostream& o, const std::pair<T, U>& p){
-	o<<"["<<serialize(p.first)<<", "<<serialize(p.second)<<"]";
-	return o;
+template<typename T, typename U> std::string _obvSerialize(const std::pair<T, U>& p){
+	std::stringstream ss;
+	ss<<"["<<_obvSerialize(p.first)<<", "<<_obvSerialize(p.second)<<"]";
+	return ss.str();
+}
+
+//-----interface-----//
+template<typename T> void _obvStream(std::stringstream& ss, T t){
+	ss<<_obvSerialize(t);
+}
+
+template<typename T, typename... Ts> void _obvStream(std::stringstream& ss, T t, Ts... ts){
+	ss<<_obvSerialize(t)<<" ";
+	_obvStream(ss, ts...);
+}
+
+template<typename... Ts> std::string str(Ts... ts){
+	std::stringstream ss;
+	_obvStream(ss, ts...);
+	return ss.str();
+}
+
+template<typename T> void _obvStreamSmall(std::stringstream& ss, T t){
+	ss<<_obvSerialize(t);
+}
+
+template<typename T, typename... Ts> void _obvStreamSmall(std::stringstream& ss, T t, Ts... ts){
+	ss<<_obvSerialize(t);
+	_obvStream(ss, ts...);
+}
+
+template<typename... Ts> std::string strs(Ts... ts){
+	std::stringstream ss;
+	_obvStreamSmall(ss, ts...);
+	return ss.str();
 }
 
 //=====parsing=====//
-static inline std::istream& operator>>(std::istream& i, uint8_t& c){
-	unsigned u;
-	auto flags=i.flags();
-	i>>std::hex>>u;
-	i.flags(flags);
-	if(u>0xff) throw std::runtime_error("uint8_t input too big");
-	c=(uint8_t)u;
-	return i;
-}
-
-//-----container parsing-----//
-template<typename T, typename U> struct KeyValuePair{
+template<typename T, typename U> struct _ObvKeyValuePair{
 	T key;
 	U value;
 };
 
-template<typename T> std::istream& operator>>(std::istream& istream, std::vector<T>& c);
-template<typename T> std::istream& operator>>(std::istream& istream, std::set<T>& c);
-template<typename T, typename U> std::istream& operator>>(std::istream& istream, KeyValuePair<T, U>& p);
-template<typename T, typename U> std::istream& operator>>(std::istream& istream, std::map<T, U>& c);
-template<typename T, typename U> std::istream& operator>>(std::istream& istream, std::pair<T, U>& p);
-static inline std::istream& operator>>(std::istream& istream, const char* cString);
-
-template<typename T> std::istream& deserialize(T& t, std::istream& istream){
-	return istream>>t;
+//-----generic-----//
+template<
+	typename T,
+	typename std::enable_if<!std::is_pointer<T>::value, int>::type=0,
+	typename std::enable_if<!std::is_class<T>::value, int>::type=0
+> void _obvDeserialize(std::stringstream& ss, T& t){
+	ss>>t;
 }
 
-static inline std::istream& deserialize(std::string& s, std::istream& istream){
-	if(read(istream, 1)!="\"") throw std::runtime_error("std::string doesn't start with \"");
+template<
+	typename T,
+	typename std::enable_if<!std::is_pointer<T>::value, int>::type=0,
+	typename std::enable_if<std::is_class<T>::value, int>::type=0
+> void _obvDeserialize(std::stringstream& ss, T& t){
+	t.dstr(ss);
+}
+
+template<
+	typename T,
+	typename std::enable_if<std::is_pointer<T>::value, int>::type=0
+> void _obvSerialize(std::stringstream& ss, T& t){
+	t->dstr(ss);
+}
+
+//-----specific-----//
+static inline void _obvDeserialize(std::stringstream& ss, std::string& s){
+	if(read(ss, 1)!="\"") throw std::runtime_error("std::string doesn't start with \"");
 	while(true){
-		auto next=read(istream, 1);
+		auto next=read(ss, 1);
 		if(next=="\"") break;
-		if(next=="\\") next=read(istream, 1);
+		if(next=="\\") next=read(ss, 1);
 		s+=next;
 	}
-	return istream;
 }
 
-static inline std::istream& deserialize(const char* cString, std::istream& istream){
-	std::string string(cString);
-	if(read(istream, string.size())!=string) throw std::runtime_error("bad serialization");
-	return istream;
+static inline void _obvDeserialize(std::stringstream& ss, const char* c){
+	std::string s(c);
+	if(read(ss, s.size())!=s) throw std::runtime_error("bad serialization");
 }
 
-template<typename T> void appendFromSerialized(std::vector<T>& c, std::istream& istream){
+static inline void _obvDeserialize(std::stringstream& ss, uint8_t& c){
+	unsigned u;
+	_obvDeserialize(ss, u);
+	c=(uint8_t)u;
+}
+
+//-----container-----//
+template<typename T> void _obvDeserialize(std::stringstream& ss, std::vector<T>& c);
+template<typename T> void _obvDeserialize(std::stringstream& ss, std::set<T>& c);
+template<typename T, typename U> void _obvDeserialize(std::stringstream& ss, _ObvKeyValuePair<T, U>& p);
+template<typename T, typename U> void _obvDeserialize(std::stringstream& ss, std::map<T, U>& c);
+template<typename T, typename U> void _obvDeserialize(std::stringstream& ss, std::pair<T, U>& p);
+
+template<typename T> void _obvAppendFromSerialized(std::vector<T>& c, std::stringstream& ss){
 	T t;
-	deserialize(t, istream);
+	_obvDeserialize(ss, t);
 	c.push_back(t);
 }
 
-template<typename T> void appendFromSerialized(std::set<T>& c, std::istream& istream){
+template<typename T> void _obvAppendFromSerialized(std::set<T>& c, std::stringstream& ss){
 	T t;
-	deserialize(t, istream);
+	_obvDeserialize(ss, t);
 	c.insert(t);
 }
 
-template<typename T> std::istream& streamContainer(
-	std::istream& istream,
+template<typename T> std::istream& _obvDeserializeContainer(
+	std::stringstream& ss,
 	T& t,
 	std::string prefix,
 	std::string open="<",
 	std::string close=">"
 ){
 	std::string s;
-	s=read(istream, prefix.size());
+	s=read(ss, prefix.size());
 	if(s!=prefix) throw std::runtime_error("container prefix is \""+s+"\" instead of \""+prefix+"\"");
-	s=read(istream, 1);
+	s=read(ss, 1);
 	if(s!=open) throw std::runtime_error("container open delimiter is \""+s+"\" instead of \""+open+"\"");
 	while(true){
-		istream>>std::ws;
-		s=peek(istream, 1);
+		ss>>std::ws;
+		s=peek(ss, 1);
 		if(s==close){
-			read(istream, 1);
+			read(ss, 1);
 			break;
 		}
-		if(s==","){ read(istream, 1); istream>>std::ws; }
-		appendFromSerialized(t, istream);
+		if(s==","){ read(ss, 1); ss>>std::ws; }
+		_obvAppendFromSerialized(t, ss);
 	}
-	return istream;
 }
 
-template<typename T> std::istream& operator>>(std::istream& istream, std::vector<T>& c){
-	return streamContainer(istream, c, "", "[", "]");
+template<typename T> void _obvDeserialize(std::stringstream& ss, std::vector<T>& c){
+	_obvDeserializeContainer(ss, c, "", "[", "]");
 }
 
-template<typename T> std::istream& operator>>(std::istream& istream, std::set<T>& c){
-	return streamContainer(istream, c, "s");
+template<typename T> void _obvDeserialize(std::stringstream& ss, std::set<T>& c){
+	_obvDeserializeContainer(ss, c, "s");
 }
 
-template<typename T, typename U> std::istream& operator>>(std::istream& istream, KeyValuePair<T, U>& p){
-	deserialize(p.key, istream);
-	deserialize(": ", istream);
-	deserialize(p.value, istream);
-	return istream;
+template<typename T, typename U> void _obvDeserialize(std::stringstream& ss, _ObvKeyValuePair<T, U>& p){
+	_obvDeserialize(ss, p.key);
+	_obvDeserialize(ss, ": ");
+	_obvDeserialize(ss, p.value);
 }
 
-template<typename T, typename U> std::istream& operator>>(std::istream& istream, std::map<T, U>& c){
-	std::vector<KeyValuePair<T, U>> x;
-	streamContainer(istream, x, "", "{", "}");
+template<typename T, typename U> void _obvDeserialize(std::stringstream& ss, std::map<T, U>& c){
+	std::vector<_ObvKeyValuePair<T, U>> x;
+	_obvDeserializeContainer(ss, x, "", "{", "}");
 	for(const auto& i: x) c[i.key]=i.value;
-	return istream;
 }
 
-template<typename T, typename U> std::istream& operator>>(std::istream& istream, std::pair<T, U>& p){
-	deserialize("(", istream);
-	deserialize(p.first, istream);
-	deserialize(", ", istream);
-	deserialize(p.second, istream);
-	deserialize(")", istream);
-	return istream;
+template<typename T, typename U> void _obvDeserialize(std::stringstream& ss, std::pair<T, U>& p){
+	_obvDeserialize(ss, "(");
+	_obvDeserialize(ss, p.first);
+	_obvDeserialize(ss, ", ");
+	_obvDeserialize(ss, p.second);
+	_obvDeserialize(ss, ")");
 }
 
-static inline std::istream& operator>>(std::istream& istream, const char* cString){
-	std::string string(cString);
-	auto actual=read(istream, string.size());
-	if(actual!=string){
-		std::stringstream ss;
-		ss<<"bad input \""<<actual<<"\" instead of \""<<string<<"\"";
-		throw std::runtime_error(ss.str());
-	}
-	return istream;
+//-----interface-----//
+template<typename T> void _obvDestream(std::stringstream& ss, T& t){
+	_obvDeserialize(ss, t);
+}
+
+template<typename T, typename... Ts> void _obvDestream(std::stringstream& ss, T& t, Ts&... ts){
+	_obvDeserialize(ss, t);
+	_obvDeserialize(ss, " ");
+	_obvDestream(ss, ts...);
+}
+
+template<typename... Ts> void dstr(std::stringstream& ss, Ts&... ts){
+	_obvDestream(ss, ts...);
 }
 
 //=====operator overloads=====//
@@ -446,16 +503,14 @@ template<typename T> struct CartesianPair{
 	bool operator==(const CartesianPair& other) const{
 		return x==other.x&&y==other.y;
 	}
+	std::string str() const{
+		return ::str("[", x, ", ", y, "]");
+	}
+	void dstr(std::stringstream& ss){
+		ss>>x>>y>>" ";
+	}
 	T x, y;
 };
-
-template<typename T> std::ostream& operator<<(std::ostream& o, const CartesianPair<T>& p){
-	return o<<"["<<p.x<<", "<<p.y<<"]";
-}
-
-template<typename T> std::istream& operator>>(std::istream& i, CartesianPair<T>& p){
-	return i>>"[">>p.x>>", ">>p.y>>"]";
-}
 
 //-----bytes-----//
 typedef std::vector<uint8_t> Bytes;
@@ -505,6 +560,7 @@ template<typename T> class Slice{
 		}
 		const T* ptr() const { return _ptr; }
 		std::size_t size() const { return _size; }
+		std::string str() const { return ::str(std::vector<T>(*this)); }
 	private:
 		const T* _ptr;
 		const std::size_t _size;
@@ -516,10 +572,6 @@ Slice<uint8_t> slice(const std::string& s){
 
 template<typename T> void operator+=(std::vector<T>& a, Slice<T> b){
 	a.insert(a.end(), b.ptr(), b.ptr()+b.size());
-}
-
-template<typename T> std::ostream& operator<<(std::ostream& o, Slice<T> slice){
-	return o<<std::vector<T>(slice);
 }
 
 #endif

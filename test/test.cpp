@@ -68,19 +68,14 @@ int main(){
 		std::vector<std::string> v{"a", "b", "c"};
 		std::map<std::string, std::string> m{{"a", "A"}, {"b", "B"}, {"c", "C"}};
 		std::vector<uint8_t> b{0, 1, 2};
-		std::stringstream ss;
-		ss<<v<<" "<<m<<" "<<b;
 		decltype(v) v2;
 		decltype(m) m2;
 		decltype(b) b2;
-		ss>>v2;
-		ss>>" ";
-		ss>>m2;
-		ss>>" ";
-		ss>>b2;
-		OBV_EXPECT(v, v2)
-		OBV_EXPECT(m, m2)
-		OBV_EXPECT(b, b2)
+		std::stringstream ss(str(v, m, b));
+		dstr(ss, v2, m2, b2);
+		OBV_EXPECT(v2, v)
+		OBV_EXPECT(m2, m)
+		OBV_EXPECT(b2, b)
 	}
 	//vector operator+= overload
 	std::cout<<"vector operator+= overload\n";
@@ -137,7 +132,7 @@ int main(){
 	std::cout<<"Cartesian coordinates\n";
 	{
 		std::vector<CartesianPair<int>> p{{3, 4}, {6, 7}, {3, 5}};
-		OBV_EXPECT(p[1].x, 6) EXPECT(p[1].y, 7)
+		OBV_EXPECT(p[1].x, 6) OBV_EXPECT(p[1].y, 7)
 		std::sort(p.begin(), p.end());
 		std::vector<CartesianPair<int>> p2{{3, 4}, {3, 5}, {6, 7}};
 		OBV_EXPECT(p, p2)
