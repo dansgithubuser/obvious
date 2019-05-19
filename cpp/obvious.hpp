@@ -201,16 +201,16 @@ template<typename T> std::string _obvSerializeContainer(
 	bool big=false;
 	{
 		std::stringstream ss;
-		for(const auto& i: t) ss<<_obvSerialize(i)<<", ";
+		for(const auto& i: t) ss<<_obvSerialize(i)<<" , ";
 		if(in('\n', ss.str())||ss.str().size()>72) big=true;
 	}
 	//meat
 	std::stringstream ss;
-	ss<<prefix<<open;
+	ss<<prefix<<open<<" ";
 	if(big) ss<<"\n";
 	bool first=true;
 	for(const auto& i: t){
-		if(!first) ss<<","<<(big?"\n":" ");
+		if(!first) ss<<" ,"<<(big?"\n":" ");
 		first=false;
 		std::string s=_obvSerialize(i);
 		if(big){
@@ -219,7 +219,7 @@ template<typename T> std::string _obvSerializeContainer(
 		}
 		ss<<s;
 	}
-	if(big) ss<<"\n";
+	ss<<(big?"\n":" ");
 	ss<<close;
 	return ss.str();
 }
