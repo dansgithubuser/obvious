@@ -294,6 +294,9 @@ template<
 	typename std::enable_if<!std::is_class<T>::value, int>::type=0
 > void _obvDeserialize(std::stringstream& ss, T& t){
 	ss>>t;
+	#ifdef OBV_DESERIALIZE_DEBUG
+		std::cout<<"dser 1 "<<t<<"\n";
+	#endif
 }
 
 template<
@@ -302,6 +305,9 @@ template<
 	typename std::enable_if<std::is_class<T>::value, int>::type=0
 > void _obvDeserialize(std::stringstream& ss, T& t){
 	t.dstr(ss);
+	#ifdef OBV_DESERIALIZE_DEBUG
+		std::cout<<"dser 2 "<<t.str()<<"\n";
+	#endif
 }
 
 template<
@@ -309,6 +315,9 @@ template<
 	typename std::enable_if<std::is_pointer<T>::value, int>::type=0
 > void _obvSerialize(std::stringstream& ss, T& t){
 	t->dstr(ss);
+	#ifdef OBV_DESERIALIZE_DEBUG
+		std::cout<<"dser 3 "<<t->str()<<"\n";
+	#endif
 }
 
 //-----specific-----//
@@ -321,18 +330,27 @@ static inline void _obvDeserialize(std::stringstream& ss, std::string& s){
 		if(next=="\\") next=read(ss, 1);
 		s+=next;
 	}
+	#ifdef OBV_DESERIALIZE_DEBUG
+		std::cout<<"dser 4 "<<s<<"\n";
+	#endif
 }
 
 static inline void _obvDeserialize(std::stringstream& ss, const char* c){
-	ss>>std::ws;
 	std::string s(c);
-	if(read(ss, s.size())!=s) throw std::runtime_error("bad serialization");
+	auto r=read(ss, s.size());
+	if(r!=s) throw std::runtime_error("bad serialization, got \""+r+"\" instead of \""+s+"\"");
+	#ifdef OBV_DESERIALIZE_DEBUG
+		std::cout<<"dser 5 "<<s<<"\n";
+	#endif
 }
 
 static inline void _obvDeserialize(std::stringstream& ss, uint8_t& c){
 	unsigned u;
 	_obvDeserialize(ss, u);
 	c=(uint8_t)u;
+	#ifdef OBV_DESERIALIZE_DEBUG
+		std::cout<<"dser 6 "<<u<<"\n";
+	#endif
 }
 
 //-----container-----//
