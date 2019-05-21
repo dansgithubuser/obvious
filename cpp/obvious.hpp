@@ -313,6 +313,7 @@ template<
 
 //-----specific-----//
 static inline void _obvDeserialize(std::stringstream& ss, std::string& s){
+	ss>>std::ws;
 	if(read(ss, 1)!="\"") throw std::runtime_error("std::string doesn't start with \"");
 	while(true){
 		auto next=read(ss, 1);
@@ -323,6 +324,7 @@ static inline void _obvDeserialize(std::stringstream& ss, std::string& s){
 }
 
 static inline void _obvDeserialize(std::stringstream& ss, const char* c){
+	ss>>std::ws;
 	std::string s(c);
 	if(read(ss, s.size())!=s) throw std::runtime_error("bad serialization");
 }
@@ -359,6 +361,7 @@ template<typename T> std::istream& _obvDeserializeContainer(
 	std::string open="<",
 	std::string close=">"
 ){
+	ss>>std::ws;
 	std::string s;
 	s=read(ss, prefix.size());
 	if(s!=prefix) throw std::runtime_error("container prefix is \""+s+"\" instead of \""+prefix+"\"");
