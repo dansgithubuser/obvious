@@ -440,6 +440,19 @@ template<typename... Ts> void dstr(std::stringstream& ss, Ts&... ts){
 	_obvDestream(ss, ts...);
 }
 
+template<typename T> void _obvDestreamSmall(std::stringstream& ss, T& t){
+	_obvDeserialize(ss, t);
+}
+
+template<typename T, typename... Ts> void _obvDestreamSmall(std::stringstream& ss, T& t, Ts&... ts){
+	_obvDeserialize(ss, t);
+	_obvDestream(ss, ts...);
+}
+
+template<typename... Ts> std::string dstrs(std::stringstream& ss, Ts&... ts){
+	_obvDestreamSmall(ss, ts...);
+}
+
 //=====operator overloads=====//
 //-----operator+= overloads-----//
 #define OBV_PLUS_EQUALS_BASE(CONTAINER1, CONTAINER2, F)\
