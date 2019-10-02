@@ -43,8 +43,8 @@ export function listenToTouches(element, options) {
 
   function elementCoords(evt) {
     return {
-      x: evt.clientX - element.offsetLeft,
-      y: evt.clientY - element.offsetTop,
+      x: evt.layerX,
+      y: evt.layerY,
     };
   }
 
