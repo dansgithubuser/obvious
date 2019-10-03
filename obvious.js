@@ -22,6 +22,11 @@ export function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+export function randomElement(array) {
+  if (!array.length) return;
+  return array[Math.floor(Math.random() * array.length)];
+}
+
 export function rect(context, xi, yi, xf, yf, r, g, b) {
   context.fillStyle = `rgb(${r}, ${g}, ${b})`;
   context.fillRect(xi, yi, xf - xi, yf - yi);
