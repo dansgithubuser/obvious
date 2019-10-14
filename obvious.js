@@ -93,9 +93,10 @@ export function listenToTouches(element, options) {
             xf: x,
             yf: y,
           };
+          if (result.xi != result.xf || result.yi != result.yf)
+            touches[touch.identifier].moved = true;
           touches[touch.identifier].x = x;
           touches[touch.identifier].y = y;
-          touches[touch.identifier].moved = true;
           return result;
         });
         const cxi = ts.reduce((sum, i) => (sum + i.xi), 0) / ts.length;
