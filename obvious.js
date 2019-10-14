@@ -39,7 +39,7 @@ options:
   onStart(id, x, y)
   onMove(xi, yi, xf, yf) // mouse only
   onWheel(x, y, dWheel) // mouse only
-  onDrag([{id, xi, yi, xf, yf}, ...], dx, dy, dSize, dTheta)
+  onDrag([{id, xi, yi, xf, yf}, ...], dx, dy, dSize, dTheta, { xi, yi, sizeI })
   onEnd(id, x, y)
   onTap(id, x, y)
   after()
@@ -111,7 +111,11 @@ export function listenToTouches(element, options) {
         const sizeF = ts.reduce((sum, i) => (sum + dist(i.xf, i.yf, cxf, cyf)), 0) / ts.length;
         const thetaI = ts.reduce((sum, i) => (sum + Math.atan2(i.yi - cyi, i.xi - cxi)), 0) / ts.length;
         const thetaF = ts.reduce((sum, i) => (sum + Math.atan2(i.yf - cyf, i.xf - cxf)), 0) / ts.length;
-        options.onDrag(ts, cxf - cxi, cyf - cyi, sizeF - sizeI, thetaF - thetaI);
+        options.onDrag(ts, cxf - cxi, cyf - cyi, sizeF - sizeI, thetaF - thetaI, {
+          xi: cxi,
+          yi: cyi,
+          sizeI,
+        });
       }
       if (options.after) options.after();
     }
@@ -151,7 +155,7 @@ export function listenToTouches(element, options) {
         const yi = touches['mouse'].y;
         const xf = x;
         const yf = y;
-        options.onDrag([{ id: 'mouse', xi, yi, xf, yf }], xf - xi, yf - yi);
+        options.onDrag([{ id: 'mouse', xi, yi, xf, yf }], xf - xi, yf - yi, undefined, undefined, { xi, yi });
       }
       touches['mouse'].x = x;
       touches['mouse'].y = y;
