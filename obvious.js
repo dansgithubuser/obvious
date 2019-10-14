@@ -56,18 +56,18 @@ export function listenToTouches(element, options) {
 
   if ('ontouchstart' in document.documentElement) {
     function touchStart(evt) {
-      if (options.before) options.before();
+      if (options.before) options.before(evt);
       for (const touch of evt.changedTouches) {
         const { x, y } = elementCoords(touch);
         touches[touch.identifier] = { x, y };
         if (options.onStart)
           options.onStart(touch.identifier, x, y);
       }
-      if (options.after) options.after();
+      if (options.after) options.after(evt);
     }
 
     function touchEnd(evt) {
-      if (options.before) options.before();
+      if (options.before) options.before(evt);
       for (const touch of evt.changedTouches) {
         const { x, y } = elementCoords(touch);
         const oldTouch = touches[touch.identifier];
@@ -77,11 +77,11 @@ export function listenToTouches(element, options) {
           options.onTap(touch.identifier, x, y);
         delete touches[touch.identifier];
       }
-      if (options.after) options.after();
+      if (options.after) options.after(evt);
     }
 
     function touchMove(evt) {
-      if (options.before) options.before();
+      if (options.before) options.before(evt);
       if (options.onDrag) {
         const ts = Array.from(evt.touches).map(touch => {
           const { x, y } = elementCoords(touch);
@@ -117,36 +117,36 @@ export function listenToTouches(element, options) {
           sizeI,
         });
       }
-      if (options.after) options.after();
+      if (options.after) options.after(evt);
     }
 
-    element.addEventListener('touchstart' , touchStart, { passive: true });
-    element.addEventListener('touchend'   , touchEnd);
-    element.addEventListener('touchcancel', touchEnd);
-    element.addEventListener('touchmove'  , touchMove, { passive: true });
+    element.addEventListener('touchstart' , touchStart, { passive: false });
+    element.addEventListener('touchend'   , touchEnd  , { passive: false });
+    element.addEventListener('touchcancel', touchEnd  , { passive: false });
+    element.addEventListener('touchmove'  , touchMove , { passive: false });
   } else {
     function mouseDown(evt) {
-      if (options.before) options.before();
+      if (options.before) options.before(evt);
       const { x, y } = elementCoords(evt);
       touches['mouse'] = { x, y, dragging: true, moved: false };
       if (options.onStart)
         options.onStart('mouse', x, y)
-      if (options.after) options.after();
+      if (options.after) options.after(evt);
     }
 
     function mouseUp(evt) {
-      if (options.before) options.before();
+      if (options.before) options.before(evt);
       const { x, y } = elementCoords(evt);
       if (options.onEnd)
         options.onEnd('mouse', x, y);
       if (options.onTap && !touches['mouse'].moved)
         options.onTap('mouse', x, y);
       touches['mouse'].dragging = false;
-      if (options.after) options.after();
+      if (options.after) options.after(evt);
     }
 
     function mouseMove(evt) {
-      if (options.before) options.before();
+      if (options.before) options.before(evt);
       const { x, y } = elementCoords(evt);
       if (options.onMove)
         options.onMove(touches['mouse'].x, touches['mouse'].y, x, y);
@@ -160,22 +160,20 @@ export function listenToTouches(element, options) {
       touches['mouse'].x = x;
       touches['mouse'].y = y;
       touches['mouse'].moved = true;
-      if (options.after) options.after();
+      if (options.after) options.after(evt);
     }
 
     function mouseWheel(evt) {
-      if (options.before) options.before();
+      if (options.before) options.before(evt);
       const { x, y } = elementCoords(evt);
-      if (options.onWheel) {
+      if (options.onWheel)
         options.onWheel(x, y, evt.deltaY);
-        evt.preventDefault();
-      }
-      if (options.after) options.after();
+      if (options.after) options.after(evt);
     }
 
-    element.addEventListener('mousedown', mouseDown);
-    element.addEventListener('mouseup'  , mouseUp);
-    element.addEventListener('mousemove', mouseMove);
-    element.addEventListener('wheel'    , mouseWheel);
+    element.addEventListener('mousedown', mouseDown , { passive: false });
+    element.addEventListener('mouseup'  , mouseUp   , { passive: false });
+    element.addEventListener('mousemove', mouseMove , { passive: false });
+    element.addEventListener('wheel'    , mouseWheel, { passive: false });
   }
 }
