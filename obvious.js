@@ -38,6 +38,7 @@ options:
   before()
   onStart(id, x, y)
   onMove(xi, yi, xf, yf) // mouse only
+  onWheel(x, y, dWheel) // mouse only
   onDrag([{id, xi, yi, xf, yf}, ...], dx, dy, dSize, dTheta)
   onEnd(id, x, y)
   onTap(id, x, y)
@@ -158,8 +159,19 @@ export function listenToTouches(element, options) {
       if (options.after) options.after();
     }
 
+    function mouseWheel(evt) {
+      if (options.before) options.before();
+      const { x, y } = elementCoords(evt);
+      if (options.onWheel) {
+        options.onWheel(x, y, evt.deltaY);
+        evt.preventDefault();
+      }
+      if (options.after) options.after();
+    }
+
     element.addEventListener('mousedown', mouseDown);
     element.addEventListener('mouseup'  , mouseUp);
     element.addEventListener('mousemove', mouseMove);
+    element.addEventListener('wheel'    , mouseWheel);
   }
 }
