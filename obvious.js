@@ -103,7 +103,7 @@ export function listenToTouches(element, options) {
         const cxf = ts.reduce((sum, i) => (sum + i.xf), 0) / ts.length;
         const cyf = ts.reduce((sum, i) => (sum + i.yf), 0) / ts.length;
         const dist = (xa, ya, xb, yb) => Math.sqrt(
-          Math.pow(xa - xb, 2),
+          Math.pow(xa - xb, 2)
           +
           Math.pow(ya - yb, 2)
         );
