@@ -35,6 +35,7 @@ export function rect(context, xi, yi, xf, yf, r, g, b) {
 
 /*
 options:
+  // callbacks
   before()
   onStart(id, x, y)
   onMove(xi, yi, xf, yf) // mouse only
@@ -43,8 +44,13 @@ options:
   onEnd(id, x, y)
   onTap(id, x, y)
   after()
+
+  // parameters
+  tapTolerance: How far a tap can move before it is no longer considered a tap. Measured in pixels. Default 5.
 */
 export function listenToTouches(element, options) {
+  const tapTolerance = options.tapTolerance === undefined ? 5 : options.tapTolerance;
+
   var touches = { mouse: {} };
 
   function elementCoords(evt) {
@@ -59,7 +65,7 @@ export function listenToTouches(element, options) {
       if (options.before) options.before(evt);
       for (const touch of evt.changedTouches) {
         const { x, y } = elementCoords(touch);
-        touches[touch.identifier] = { x, y };
+        touches[touch.identifier] = { x, y, xi: x, yi: y };
         if (options.onStart)
           options.onStart(touch.identifier, x, y);
       }
@@ -93,7 +99,7 @@ export function listenToTouches(element, options) {
             xf: x,
             yf: y,
           };
-          if (result.xi != result.xf || result.yi != result.yf)
+          if (Math.pow(oldTouch.xi - x, 2) + Math.pow(oldTouch.yi - y, 2) > Math.pow(tapTolerance, 2))
             touches[touch.identifier].moved = true;
           touches[touch.identifier].x = x;
           touches[touch.identifier].y = y;
@@ -129,7 +135,7 @@ export function listenToTouches(element, options) {
     function mouseDown(evt) {
       if (options.before) options.before(evt);
       const { x, y } = elementCoords(evt);
-      touches['mouse'] = { x, y, dragging: true, moved: false };
+      touches['mouse'] = { x, y, dragging: true, moved: false, xi: x, yi: y };
       if (options.onStart)
         options.onStart('mouse', x, y)
       if (options.after) options.after(evt);
@@ -160,7 +166,8 @@ export function listenToTouches(element, options) {
       }
       touches['mouse'].x = x;
       touches['mouse'].y = y;
-      touches['mouse'].moved = true;
+      if (Math.pow(touches['mouse'].xi - x, 2) + Math.pow(touches['mouse'].yi - y, 2) > Math.pow(tapTolerance, 2))
+        touches['mouse'].moved = true;
       if (options.after) options.after(evt);
     }
 
