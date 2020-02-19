@@ -372,7 +372,7 @@ template<typename T> void _obvAppendFromSerialized(std::set<T>& c, std::stringst
 	c.insert(t);
 }
 
-template<typename T> std::istream& _obvDeserializeContainer(
+template<typename T> void _obvDeserializeContainer(
 	std::stringstream& ss,
 	T& t,
 	std::string prefix,
