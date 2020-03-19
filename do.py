@@ -25,5 +25,6 @@ if args.test:
 if args.package:
 	shutil.copyfile('obvious.py', os.path.join('package', 'py', 'obvious', 'obvious.py'))
 	os.chdir(os.path.join('package', 'py'))
+	shutil.rmtree('dist')
 	subprocess.check_call('python3 setup.py sdist', shell=True)
 	subprocess.check_call('twine upload dist/*', shell=True)
