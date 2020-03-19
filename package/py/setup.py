@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
 	name='obvious',
-	version='1.0.0',
+	version='2.0.0',
 	description='bunch of obvious functionality',
 	url='http://github.com/dansgithubuser/obvious',
 	author='danspypiuser',
