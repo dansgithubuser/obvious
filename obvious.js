@@ -33,6 +33,14 @@ export function rect(context, xi, yi, xf, yf, r, g, b) {
   context.stroke();
 }
 
+export function capitalize(s) {
+  return s[0].toUpperCase() + s.slice(1);
+}
+
+export function snakeToUpperCamelCase(s) {
+  return s.split('_').map(i => capitalize(i)).join('')
+}
+
 /*
 options:
   // callbacks
