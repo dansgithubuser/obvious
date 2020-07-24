@@ -30,7 +30,13 @@ export function randomElement(array) {
 export function rect(context, xi, yi, xf, yf, r, g, b) {
   context.fillStyle = `rgb(${r}, ${g}, ${b})`;
   context.fillRect(xi, yi, xf - xi, yf - yi);
-  context.stroke();
+}
+
+export function disc(context, x, y, radius, r, g, b) {
+  context.fillStyle = `rgb(${r}, ${g}, ${b})`;
+  context.beginPath();
+  context.arc(x, y, radius, 0, 2 * Math.PI);
+  context.fill();
 }
 
 export function capitalize(s) {
