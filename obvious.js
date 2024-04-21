@@ -199,3 +199,27 @@ export function listenToTouches(element, options) {
     element.addEventListener('wheel'    , mouseWheel, { passive: false });
   }
 }
+
+export function dateFormat(date) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()     ).padStart(2, '0');
+  const HH = String(date.getHours()    ).padStart(2, '0');
+  const MM = String(date.getMinutes()  ).padStart(2, '0');
+  const SS = String(date.getSeconds()  ).padStart(2, '0');
+  const tz_off = -date.getTimezoneOffset();
+  const tz_sgn = tz_off < 0 ? '-' : '+';
+  const tz_min = Math.abs(tz_off);
+  const tz_hh = String(Math.floor(tz_min / 60)).padStart(2, '0');
+  const tz_mm = String(tz_min % 60            ).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${HH}:${MM}:${SS}${tz_sgn}${tz_hh}:${tz_mm}`;
+}
+
+export function dateStartOfDay(date) {
+  const sod = new Date(date.getTime());
+  sod.setHours(0);
+  sod.setMinutes(0);
+  sod.setSeconds(0);
+  sod.setMilliseconds(0);
+  return sod;
+}
